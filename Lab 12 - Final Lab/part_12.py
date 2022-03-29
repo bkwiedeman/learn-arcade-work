@@ -37,14 +37,6 @@ class Coin(arcade.Sprite):
         self.max_health = max_health
         self.cur_health = max_health
 
-    def draw_health_number(self):
-        health_string = f"{self.cur_health}/{self.max_health}"
-        arcade.draw_text(health_string,
-                         start_x=self.center_x + HEALTH_NUMBER_OFFSET_X,
-                         start_y=self.center_y + HEALTH_NUMBER_OFFSET_Y,
-                         font_size=12,
-                         color=arcade.color.WHITE)
-
     def draw_health_bar(self):
         if self.cur_health < self.max_health:
             arcade.draw_rectangle_filled(center_x=self.center_x,
@@ -75,20 +67,39 @@ class Coin(arcade.Sprite):
 
 
 class Player(arcade.Sprite):
-    def __init__(self, position_x, position_y, change_x, change_y):
-        super().__init__()
+    def __init__(self, position_x, position_y, change_x, change_y, max_health, cur_health, image, scale):
+        super().__init__(image, scale)
         self.center_x = position_x
         self.center_y = position_y
         self.change_x = change_x
         self.change_y = change_y
+        self.max_health = max_health
+        self.cur_health = cur_health
+
+    """ Main application class. """
 
     def update(self):
         self.center_x += self.change_x
         self.center_y += self.change_y
 
+    def draw_health_bar(self):
+        if self.cur_health < self.max_health:
+            arcade.draw_rectangle_filled(center_x=self.center_x,
+                                         center_y=self.center_y - 50,
+                                         width=HEALTHBAR_WIDTH,
+                                         height=3,
+                                         color=arcade.color.RED)
+
+        health_width = HEALTHBAR_WIDTH * (self.cur_health / self.max_health)
+
+        arcade.draw_rectangle_filled(center_x=self.center_x - 0.5 * (HEALTHBAR_WIDTH - health_width),
+                                     center_y=self.center_y - 35,
+                                     width=health_width,
+                                     height=HEALTHBAR_HEIGHT,
+                                     color=arcade.color.GREEN)
+
 
 class MyGame(arcade.Window):
-    """ Main application class. """
 
     def __init__(self):
         """ Initializer """
@@ -132,10 +143,8 @@ class MyGame(arcade.Window):
         self.score = 0
 
         # Image from kenney.nl
-        self.player_sprite = arcade.Sprite(":resources:images/animated_characters/female_person/"
-                                           "femalePerson_idle.png", SPRITE_SCALING_PLAYER)
-        self.player_sprite.center_x = 50
-        self.player_sprite.center_y = 70
+        self.player_sprite = Player(50, 70, 0, 0, 5, 5, ":resources:images/animated_characters/female_person/"
+                                                        "femalePerson_idle.png", SPRITE_SCALING_PLAYER)
         self.player_list.append(self.player_sprite)
 
         # Create the coins
@@ -166,8 +175,10 @@ class MyGame(arcade.Window):
         self.player_list.draw()
 
         for coin in self.coin_list:
-            coin.draw_health_number()
             coin.draw_health_bar()
+
+        for player in self.player_list:
+            player.draw_health_bar()
 
         # Put the text on the screen.
         output = f"Score: {self.score}"
@@ -232,6 +243,7 @@ class MyGame(arcade.Window):
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.remove_from_sprite_lists()
 
+
     # Move Character
     def on_key_press(self, key, modifiers):
         if key == arcade.key.W:
@@ -243,7 +255,6 @@ class MyGame(arcade.Window):
         elif key == arcade.key.A:
             self.player_sprite.change_x = -MOVEMENT_SPEED
         elif key == arcade.key.D:
-
             self.player_sprite.change_x = MOVEMENT_SPEED
 
     def on_key_release(self, key, modifiers):
