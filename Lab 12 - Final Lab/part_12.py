@@ -18,8 +18,61 @@ SCREEN_TITLE = "FINAL PROJECT"
 
 BULLET_SPEED = 5
 MOVEMENT_SPEED = 4
+SPRITE_SPEED = 0.5
+
+HEALTHBAR_WIDTH = 25
+HEALTHBAR_HEIGHT = 3
+HEALTHBAR_OFFSET_Y = -10
+
+HEALTH_NUMBER_OFFSET_X = -10
+HEALTH_NUMBER_OFFSET_Y = -25
 
 window = None
+
+
+class Coin(arcade.Sprite):
+    def __init__(self, image, scale, max_health):
+        super().__init__(image, scale)
+
+        self.max_health = max_health
+        self.cur_health = max_health
+
+    def draw_health_number(self):
+        health_string = f"{self.cur_health}/{self.max_health}"
+        arcade.draw_text(health_string,
+                         start_x=self.center_x + HEALTH_NUMBER_OFFSET_X,
+                         start_y=self.center_y + HEALTH_NUMBER_OFFSET_Y,
+                         font_size=12,
+                         color=arcade.color.WHITE)
+
+    def draw_health_bar(self):
+        if self.cur_health < self.max_health:
+            arcade.draw_rectangle_filled(center_x=self.center_x,
+                                         center_y=self.center_y + HEALTHBAR_OFFSET_Y,
+                                         width=HEALTHBAR_WIDTH,
+                                         height=3,
+                                         color=arcade.color.RED)
+
+        health_width = HEALTHBAR_WIDTH * (self.cur_health / self.max_health)
+
+        arcade.draw_rectangle_filled(center_x=self.center_x - 0.5 * (HEALTHBAR_WIDTH - health_width),
+                                     center_y=self.center_y - 10,
+                                     width=health_width,
+                                     height=HEALTHBAR_HEIGHT,
+                                     color=arcade.color.GREEN)
+
+    def follow_sprite(self, player_sprite):
+
+        if self.center_y < player_sprite.center_y:
+            self.center_y += min(SPRITE_SPEED, player_sprite.center_y - self.center_y)
+        elif self.center_y > player_sprite.center_y:
+            self.center_y -= min(SPRITE_SPEED, self.center_y - player_sprite.center_y)
+
+        if self.center_x < player_sprite.center_x:
+            self.center_x += min(SPRITE_SPEED, player_sprite.center_x - self.center_x)
+        elif self.center_x > player_sprite.center_x:
+            self.center_x -= min(SPRITE_SPEED, self.center_x - player_sprite.center_x)
+
 
 class Player(arcade.Sprite):
     def __init__(self, position_x, position_y, change_x, change_y):
@@ -32,7 +85,6 @@ class Player(arcade.Sprite):
     def update(self):
         self.center_x += self.change_x
         self.center_y += self.change_y
-
 
 
 class MyGame(arcade.Window):
@@ -63,7 +115,8 @@ class MyGame(arcade.Window):
         # Load sounds. Sounds from kenney.nl
         self.gun_sound = arcade.sound.load_sound(":resources:sounds/laser1.wav")
         self.hit_sound = arcade.sound.load_sound(":resources:sounds/phaseJump1.wav")
-
+        self.death_sound = arcade.sound.load_sound(":resources:sounds/hit5.wav"
+                                                   "")
         arcade.set_background_color(arcade.color.AMAZON)
 
     def setup(self):
@@ -89,7 +142,7 @@ class MyGame(arcade.Window):
         for i in range(COIN_COUNT):
             # Create the coin instance
             # Coin image from kenney.nl
-            coin = arcade.Sprite(":resources:images/items/coinGold.png", SPRITE_SCALING_COIN)
+            coin = Coin(":resources:images/items/coinGold.png", SPRITE_SCALING_COIN, 5)
 
             # Position the coin
             coin.center_x = random.randrange(SCREEN_WIDTH)
@@ -111,6 +164,10 @@ class MyGame(arcade.Window):
         self.coin_list.draw()
         self.bullet_list.draw()
         self.player_list.draw()
+
+        for coin in self.coin_list:
+            coin.draw_health_number()
+            coin.draw_health_bar()
 
         # Put the text on the screen.
         output = f"Score: {self.score}"
@@ -136,7 +193,6 @@ class MyGame(arcade.Window):
         angle = math.atan2(y_diff, x_diff)
 
         bullet.angle = math.degrees(angle)
-        print(f"Bullet angle: {bullet.angle:.2f}")
 
         bullet.change_x = math.cos(angle) * BULLET_SPEED
         bullet.change_y = math.sin(angle) * BULLET_SPEED
@@ -147,6 +203,9 @@ class MyGame(arcade.Window):
     def on_update(self, delta_time):
         self.bullet_list.update()
         self.player_list.update()
+
+        for coin in self.coin_list:
+            coin.follow_sprite(self.player_sprite)
 
         # Loop through each bullet
         for bullet in self.bullet_list:
@@ -160,8 +219,14 @@ class MyGame(arcade.Window):
 
             # For every coin we hit, add to the score and remove the coin
             for coin in hit_list:
-                coin.remove_from_sprite_lists()
-                self.score += 1
+                coin.cur_health -= 1
+
+                if coin.cur_health <= 0:
+                    coin.remove_from_sprite_lists()
+                    self.score += 1
+                    arcade.play_sound(self.death_sound)
+                else:
+                    arcade.play_sound(self.hit_sound)
 
             # If the bullet flies off-screen, remove it.
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
@@ -187,7 +252,6 @@ class MyGame(arcade.Window):
 
         elif key == arcade.key.A or key == arcade.key.D:
             self.player_sprite.change_x = 0
-
 
 
 def main():
