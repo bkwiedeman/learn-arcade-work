@@ -7,6 +7,7 @@ import arcade
 import math
 import os
 
+SPRITE_SCALING = 0.5
 SPRITE_SCALING_PLAYER = 0.5
 SPRITE_SCALING_COIN = 0.2
 SPRITE_SCALING_LASER = 0.8
@@ -67,6 +68,8 @@ class Coin(arcade.Sprite):
 
 
 class Player(arcade.Sprite):
+    cur_health = None
+
     def __init__(self, position_x, position_y, change_x, change_y, max_health, cur_health, image, scale):
         super().__init__(image, scale)
         self.center_x = position_x
@@ -117,12 +120,13 @@ class MyGame(arcade.Window):
         self.player_list = None
         self.coin_list = None
         self.bullet_list = None
+        self.wall_list = None
+
+        self.physics_engine = None
 
         # Set up the player info
         self.player_sprite = None
         self.score = 0
-        self.score_text = None
-
         # Load sounds. Sounds from kenney.nl
         self.gun_sound = arcade.sound.load_sound(":resources:sounds/laser1.wav")
         self.hit_sound = arcade.sound.load_sound(":resources:sounds/phaseJump1.wav")
@@ -138,6 +142,7 @@ class MyGame(arcade.Window):
         self.player_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
         self.bullet_list = arcade.SpriteList()
+        self.wall_list = arcade.SpriteList()
 
         # Set up the player
         self.score = 0
@@ -147,18 +152,47 @@ class MyGame(arcade.Window):
                                                         "femalePerson_idle.png", SPRITE_SCALING_PLAYER)
         self.player_list.append(self.player_sprite)
 
-        # Create the coins
+        for x in range(0, 800, 42):
+            wall = arcade.Sprite(":resources:images/tiles/grassCenter.png", SPRITE_SCALING)
+            wall.center_x = x
+            wall.center_y = 0
+            self.wall_list.append(wall)
+
+        for x in range(0, 800, 42):
+            wall = arcade.Sprite(":resources:images/tiles/grassCenter.png", SPRITE_SCALING)
+            wall.center_x = x
+            wall.center_y = 600
+            self.wall_list.append(wall)
+
+        for y in range(0, 600, 42):
+            wall = arcade.Sprite(":resources:images/tiles/grassCenter.png", SPRITE_SCALING)
+            wall.center_x = 0
+            wall.center_y = y
+            self.wall_list.append(wall)
+
+        for y in range(0, 600, 42):
+            wall = arcade.Sprite(":resources:images/tiles/grassCenter.png", SPRITE_SCALING)
+            wall.center_x = 800
+            wall.center_y = y
+            self.wall_list.append(wall)
+
         for i in range(COIN_COUNT):
-            # Create the coin instance
-            # Coin image from kenney.nl
-            coin = Coin(":resources:images/items/coinGold.png", SPRITE_SCALING_COIN, 5)
+            coin = Coin(":resources:images/items/coinGold.png", SPRITE_SCALING_COIN, 3)
+            coin_placed_successfully = False
 
-            # Position the coin
-            coin.center_x = random.randrange(SCREEN_WIDTH)
-            coin.center_y = random.randrange(120, SCREEN_HEIGHT)
+            while not coin_placed_successfully:
+                coin.center_x = random.randrange(-1000, 1500, 64)
+                coin.center_y = random.randrange(-1000, 1500, 64)
 
-            # Add the coin to the lists
+                wall_hit_list = arcade.check_for_collision_with_list(coin, self.wall_list)
+                coin_hit_list = arcade.check_for_collision_with_list(coin, self.coin_list)
+
+                if len(wall_hit_list) == 0 and len(coin_hit_list) == 0:
+                    coin_placed_successfully = True
+
             self.coin_list.append(coin)
+
+        self.physics_engine = arcade.PhysicsEngineSimple(self.player_sprite, self.wall_list)
 
         # Set the background color
         arcade.set_background_color(arcade.color.AMAZON)
@@ -173,6 +207,7 @@ class MyGame(arcade.Window):
         self.coin_list.draw()
         self.bullet_list.draw()
         self.player_list.draw()
+        self.wall_list.draw()
 
         for coin in self.coin_list:
             coin.draw_health_bar()
@@ -242,6 +277,8 @@ class MyGame(arcade.Window):
             # If the bullet flies off-screen, remove it.
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.remove_from_sprite_lists()
+
+        self.physics_engine.update()
 
 
     # Move Character
