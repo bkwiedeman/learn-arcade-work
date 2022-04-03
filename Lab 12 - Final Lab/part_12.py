@@ -68,16 +68,15 @@ class Coin(arcade.Sprite):
 
 
 class Player(arcade.Sprite):
-    cur_health = None
 
-    def __init__(self, position_x, position_y, change_x, change_y, max_health, cur_health, image, scale):
+    def __init__(self, position_x, position_y, change_x, change_y, max_health, image, scale):
         super().__init__(image, scale)
         self.center_x = position_x
         self.center_y = position_y
         self.change_x = change_x
         self.change_y = change_y
         self.max_health = max_health
-        self.cur_health = cur_health
+        self.cur_health = max_health
 
     """ Main application class. """
 
@@ -88,7 +87,7 @@ class Player(arcade.Sprite):
     def draw_health_bar(self):
         if self.cur_health < self.max_health:
             arcade.draw_rectangle_filled(center_x=self.center_x,
-                                         center_y=self.center_y - 50,
+                                         center_y=self.center_y - 35,
                                          width=HEALTHBAR_WIDTH,
                                          height=3,
                                          color=arcade.color.RED)
@@ -148,8 +147,8 @@ class MyGame(arcade.Window):
         self.score = 0
 
         # Image from kenney.nl
-        self.player_sprite = Player(50, 70, 0, 0, 5, 5, ":resources:images/animated_characters/female_person/"
-                                                        "femalePerson_idle.png", SPRITE_SCALING_PLAYER)
+        self.player_sprite = Player(50, 70, 0, 0, 5, ":resources:images/animated_characters/female_person/"
+                                                     "femalePerson_idle.png", SPRITE_SCALING_PLAYER)
         self.player_list.append(self.player_sprite)
 
         for x in range(0, 800, 42):
@@ -177,7 +176,7 @@ class MyGame(arcade.Window):
             self.wall_list.append(wall)
 
         for i in range(COIN_COUNT):
-            coin = Coin(":resources:images/items/coinGold.png", SPRITE_SCALING_COIN, 3)
+            coin = Coin(":resources:images/items/coinGold.png", SPRITE_SCALING_COIN, 1)
             coin_placed_successfully = False
 
             while not coin_placed_successfully:
@@ -214,6 +213,14 @@ class MyGame(arcade.Window):
 
         for player in self.player_list:
             player.draw_health_bar()
+
+        if len(self.coin_list) == 0:
+            output = "GAME OVER!"
+            arcade.draw_text(output, 400, 300, arcade.color.WHITE, 25)
+
+        if len(self.player_list) == 0:
+            output = "YOU DIED!"
+            arcade.draw_text(output, 400, 300, arcade.color.WHITE, 25)
 
         # Put the text on the screen.
         output = f"Score: {self.score}"
@@ -278,8 +285,23 @@ class MyGame(arcade.Window):
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.remove_from_sprite_lists()
 
-        self.physics_engine.update()
+        for coin in self.coin_list:
 
+            player_hit_list = arcade.check_for_collision_with_list(coin, self.player_list)
+
+            if len(player_hit_list) > 0:
+                coin.remove_from_sprite_lists()
+
+            for player in player_hit_list:
+                player.cur_health -= 1
+
+                if player.cur_health <= 0:
+                    player.remove_from_sprite_lists()
+                    arcade.play_sound(self.death_sound)
+                else:
+                    arcade.play_sound(self.hit_sound)
+
+        self.physics_engine.update()
 
     # Move Character
     def on_key_press(self, key, modifiers):
