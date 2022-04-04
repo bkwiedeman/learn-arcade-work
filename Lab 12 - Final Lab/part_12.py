@@ -17,9 +17,9 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCREEN_TITLE = "FINAL PROJECT"
 
-BULLET_SPEED = 5
+BULLET_SPEED = 15
 MOVEMENT_SPEED = 4
-SPRITE_SPEED = 0.5
+SPRITE_SPEED = 0.6
 
 HEALTHBAR_WIDTH = 25
 HEALTHBAR_HEIGHT = 3
@@ -121,6 +121,8 @@ class MyGame(arcade.Window):
         self.bullet_list = None
         self.wall_list = None
 
+        self.level = 1
+
         self.physics_engine = None
 
         # Set up the player info
@@ -132,6 +134,30 @@ class MyGame(arcade.Window):
         self.death_sound = arcade.sound.load_sound(":resources:sounds/hit5.wav"
                                                    "")
         arcade.set_background_color(arcade.color.AMAZON)
+
+    def level_1(self):
+        for i in range(COIN_COUNT):
+            coin = Coin(":resources:images/items/coinGold.png", SPRITE_SCALING_COIN, 5)
+            coin.center_x = random.randrange(-1000, 1500, 64)
+            coin.center_y = random.randrange(-1000, 1500, 64)
+
+            self.coin_list.append(coin)
+
+    def level_2(self):
+        for i in range(COIN_COUNT):
+            coin = Coin(":resources:images/items/coinGold.png", SPRITE_SCALING_COIN, 1)
+            coin.center_x = random.randrange(-1000, 1500, 64)
+            coin.center_y = random.randrange(-1000, 1500, 64)
+
+            self.coin_list.append(coin)
+
+    def level_3(self):
+        for i in range(COIN_COUNT):
+            coin = Coin(":resources:images/items/coinGold.png", SPRITE_SCALING_COIN, 1)
+            coin.center_x = random.randrange(-1000, 1500, 64)
+            coin.center_y = random.randrange(-1000, 1500, 64)
+
+            self.coin_list.append(coin)
 
     def setup(self):
 
@@ -145,6 +171,7 @@ class MyGame(arcade.Window):
 
         # Set up the player
         self.score = 0
+        self.level = 1
 
         # Image from kenney.nl
         self.player_sprite = Player(50, 70, 0, 0, 5, ":resources:images/animated_characters/female_person/"
@@ -177,17 +204,8 @@ class MyGame(arcade.Window):
 
         for i in range(COIN_COUNT):
             coin = Coin(":resources:images/items/coinGold.png", SPRITE_SCALING_COIN, 1)
-            coin_placed_successfully = False
-
-            while not coin_placed_successfully:
-                coin.center_x = random.randrange(-1000, 1500, 64)
-                coin.center_y = random.randrange(-1000, 1500, 64)
-
-                wall_hit_list = arcade.check_for_collision_with_list(coin, self.wall_list)
-                coin_hit_list = arcade.check_for_collision_with_list(coin, self.coin_list)
-
-                if len(wall_hit_list) == 0 and len(coin_hit_list) == 0:
-                    coin_placed_successfully = True
+            coin.center_x = random.randrange(-1000, 1500, 64)
+            coin.center_y = random.randrange(-1000, 1500, 64)
 
             self.coin_list.append(coin)
 
@@ -195,6 +213,8 @@ class MyGame(arcade.Window):
 
         # Set the background color
         arcade.set_background_color(arcade.color.AMAZON)
+
+        self.level_1()
 
     def on_draw(self):
         """ Render the screen. """
@@ -225,6 +245,9 @@ class MyGame(arcade.Window):
         # Put the text on the screen.
         output = f"Score: {self.score}"
         arcade.draw_text(output, 10, 20, arcade.color.WHITE, 14)
+
+        output = f"Level: {self.level}"
+        arcade.draw_text(output, 10, 35, arcade.color.WHITE, 15)
 
     def on_mouse_press(self, x, y, button, modifiers):
         """ Called whenever the mouse button is clicked. """
@@ -280,6 +303,15 @@ class MyGame(arcade.Window):
                     arcade.play_sound(self.death_sound)
                 else:
                     arcade.play_sound(self.hit_sound)
+
+                    # See if we should go to level 2
+            if len(self.coin_list) == 0 and self.level == 1:
+                self.level += 1
+                self.level_2()
+                # See if we should go to level 3
+            elif len(self.coin_list) == 0 and self.level == 2:
+                self.level += 1
+                self.level_3()
 
             # If the bullet flies off-screen, remove it.
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
