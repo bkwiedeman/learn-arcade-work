@@ -116,7 +116,7 @@ class MyGame(arcade.Window):
         self.rocket_list.draw()
 
         output = "Score: " + str(self.score)
-        arcade.draw_text(output, 10, 20, arcade.color.WHITE, 14)
+        arcade.draw_text(output, 10, 20, arcade.color.WHITE, 15)
 
         if len(self.cow_list) == 0:
             output = "GAME OVER!"
