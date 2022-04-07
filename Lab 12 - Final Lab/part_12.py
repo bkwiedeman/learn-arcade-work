@@ -38,7 +38,7 @@ window = None
 class InstructionView(arcade.View):
     def on_show(self):
         """ This is run once when we switch to this view """
-        arcade.set_background_color(arcade.csscolor.DARK_SLATE_BLUE)
+        arcade.set_background_color(arcade.csscolor.BLACK)
 
     def on_draw(self):
         """ Draw this view """
