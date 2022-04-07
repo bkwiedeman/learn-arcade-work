@@ -1,3 +1,7 @@
+# CHANGE COIN TO PLANE
+# CHANGE SOUNDS
+# REMOVE REDUNDANT CODE (GAME OVER)
+# CITE WEBSITE ABOVE IMAGE AND SOUNDS
 """
 Artwork from https://kenney.nl
 """
@@ -7,10 +11,10 @@ import arcade
 import math
 import os
 
-SPRITE_SCALING = 0.5
-SPRITE_SCALING_PLAYER = 0.5
-SPRITE_SCALING_COIN = 0.2
-SPRITE_SCALING_LASER = 0.8
+SPRITE_SCALING = 0.8
+SPRITE_SCALING_PLAYER = 0.3
+SPRITE_SCALING_COIN = 0.8
+SPRITE_SCALING_LASER = 0.4
 COIN_COUNT = 50
 
 SCREEN_WIDTH = 800
@@ -29,6 +33,56 @@ HEALTH_NUMBER_OFFSET_X = -10
 HEALTH_NUMBER_OFFSET_Y = -25
 
 window = None
+
+
+class InstructionView(arcade.View):
+    def on_show(self):
+        """ This is run once when we switch to this view """
+        arcade.set_background_color(arcade.csscolor.DARK_SLATE_BLUE)
+
+    def on_draw(self):
+        """ Draw this view """
+        self.window.clear()
+        arcade.draw_text("Instructions", self.window.width / 2, self.window.height / 2,
+                         arcade.color.WHITE, font_size=50, anchor_x="center")
+        arcade.draw_text("W,A,S,D to move.", self.window.width / 2, self.window.height / 2 - 70,
+                         arcade.color.WHITE, font_size=20, anchor_x="center")
+        arcade.draw_text("Mouse to aim.", self.window.width / 2, self.window.height / 2 - 100,
+                         arcade.color.WHITE, font_size=20, anchor_x="center")
+        arcade.draw_text("Right click mouse to shoot", self.window.width / 2, self.window.height / 2 - 130,
+                         arcade.color.WHITE, font_size=20, anchor_x="center")
+        arcade.draw_text("Destroy all of the enemy ships", self.window.width / 2, self.window.height / 2 - 200,
+                         arcade.color.WHITE, font_size=20, anchor_x="center")
+        arcade.draw_text("Don't Die. Good Luck", self.window.width / 2, self.window.height / 2 - 230,
+                         arcade.color.WHITE, font_size=20, anchor_x="center")
+        arcade.draw_text("Click to Continue..", self.window.width / 2, self.window.height / 2 - 290,
+                         arcade.color.WHITE, font_size=20, anchor_x="center")
+
+    def on_mouse_press(self, _x, _y, _button, _modifiers):
+        """ If the user presses the mouse button, start the game. """
+        game_view = GameView()
+        game_view.setup()
+        self.window.show_view(game_view)
+
+
+class GameOverView(arcade.View):
+    def on_show(self):
+        """ This is run once when we switch to this view """
+        arcade.set_background_color(arcade.csscolor.BLACK)
+
+    def on_draw(self):
+        """ Draw this view """
+        self.window.clear()
+        arcade.draw_text("You have Died.", self.window.width / 2, self.window.height / 2,
+                         arcade.color.WHITE, font_size=50, anchor_x="center")
+        arcade.draw_text("Click to Try Again...", self.window.width / 2, self.window.height / 2 - 70,
+                         arcade.color.WHITE, font_size=20, anchor_x="center")
+
+    def on_mouse_press(self, _x, _y, _button, _modifiers):
+        """ If the user presses the mouse button, start the game. """
+        game_view = GameView()
+        game_view.setup()
+        self.window.show_view(game_view)
 
 
 class Coin(arcade.Sprite):
@@ -101,12 +155,12 @@ class Player(arcade.Sprite):
                                      color=arcade.color.GREEN)
 
 
-class MyGame(arcade.Window):
+class GameView(arcade.View):
 
     def __init__(self):
         """ Initializer """
         # Call the parent class initializer
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        super().__init__()
 
         # Set the working directory (where we expect to find files) to the same
         # directory this .py file is in. You can leave this out of your own
@@ -137,7 +191,7 @@ class MyGame(arcade.Window):
 
     def level_1(self):
         for i in range(COIN_COUNT):
-            coin = Coin(":resources:images/items/coinGold.png", SPRITE_SCALING_COIN, 5)
+            coin = Coin("ship_0005.png", SPRITE_SCALING_COIN, 5)
             coin.center_x = random.randrange(-1000, 1500, 64)
             coin.center_y = random.randrange(-1000, 1500, 64)
 
@@ -145,7 +199,7 @@ class MyGame(arcade.Window):
 
     def level_2(self):
         for i in range(COIN_COUNT):
-            coin = Coin(":resources:images/items/coinGold.png", SPRITE_SCALING_COIN, 1)
+            coin = Coin("ship_0005.png", SPRITE_SCALING_COIN, 1)
             coin.center_x = random.randrange(-1000, 1500, 64)
             coin.center_y = random.randrange(-1000, 1500, 64)
 
@@ -153,7 +207,7 @@ class MyGame(arcade.Window):
 
     def level_3(self):
         for i in range(COIN_COUNT):
-            coin = Coin(":resources:images/items/coinGold.png", SPRITE_SCALING_COIN, 1)
+            coin = Coin("ship_0005.png", SPRITE_SCALING_COIN, 1)
             coin.center_x = random.randrange(-1000, 1500, 64)
             coin.center_y = random.randrange(-1000, 1500, 64)
 
@@ -174,36 +228,35 @@ class MyGame(arcade.Window):
         self.level = 1
 
         # Image from kenney.nl
-        self.player_sprite = Player(50, 70, 0, 0, 5, ":resources:images/animated_characters/female_person/"
-                                                     "femalePerson_idle.png", SPRITE_SCALING_PLAYER)
+        self.player_sprite = Player(50, 70, 0, 0, 10, "tanks_tankGrey1.png", SPRITE_SCALING_PLAYER)
         self.player_list.append(self.player_sprite)
 
         for x in range(0, 800, 42):
-            wall = arcade.Sprite(":resources:images/tiles/grassCenter.png", SPRITE_SCALING)
+            wall = arcade.Sprite("tanks_crateWood.png", SPRITE_SCALING)
             wall.center_x = x
             wall.center_y = 0
             self.wall_list.append(wall)
 
         for x in range(0, 800, 42):
-            wall = arcade.Sprite(":resources:images/tiles/grassCenter.png", SPRITE_SCALING)
+            wall = arcade.Sprite("tanks_crateWood.png", SPRITE_SCALING)
             wall.center_x = x
             wall.center_y = 600
             self.wall_list.append(wall)
 
         for y in range(0, 600, 42):
-            wall = arcade.Sprite(":resources:images/tiles/grassCenter.png", SPRITE_SCALING)
+            wall = arcade.Sprite("tanks_crateWood.png", SPRITE_SCALING)
             wall.center_x = 0
             wall.center_y = y
             self.wall_list.append(wall)
 
         for y in range(0, 600, 42):
-            wall = arcade.Sprite(":resources:images/tiles/grassCenter.png", SPRITE_SCALING)
+            wall = arcade.Sprite("tanks_crateWood.png", SPRITE_SCALING)
             wall.center_x = 800
             wall.center_y = y
             self.wall_list.append(wall)
 
         for i in range(COIN_COUNT):
-            coin = Coin(":resources:images/items/coinGold.png", SPRITE_SCALING_COIN, 1)
+            coin = Coin("ship_0005.png", SPRITE_SCALING_COIN, 1)
             coin.center_x = random.randrange(-1000, 1500, 64)
             coin.center_y = random.randrange(-1000, 1500, 64)
 
@@ -212,7 +265,7 @@ class MyGame(arcade.Window):
         self.physics_engine = arcade.PhysicsEngineSimple(self.player_sprite, self.wall_list)
 
         # Set the background color
-        arcade.set_background_color(arcade.color.AMAZON)
+        arcade.set_background_color(arcade.color.TAN)
 
         self.level_1()
 
@@ -220,7 +273,7 @@ class MyGame(arcade.Window):
         """ Render the screen. """
 
         # This command has to happen before we start drawing
-        self.clear()
+        self.window.clear()
 
         # Draw all the sprites.
         self.coin_list.draw()
@@ -238,10 +291,6 @@ class MyGame(arcade.Window):
             output = "GAME OVER!"
             arcade.draw_text(output, 400, 300, arcade.color.WHITE, 25)
 
-        if len(self.player_list) == 0:
-            output = "YOU DIED!"
-            arcade.draw_text(output, 400, 300, arcade.color.WHITE, 25)
-
         # Put the text on the screen.
         output = f"Score: {self.score}"
         arcade.draw_text(output, 10, 20, arcade.color.WHITE, 14)
@@ -253,7 +302,7 @@ class MyGame(arcade.Window):
         """ Called whenever the mouse button is clicked. """
 
         # Create a bullet
-        bullet = arcade.Sprite(":resources:images/space_shooter/laserBlue01.png", SPRITE_SCALING_LASER)
+        bullet = arcade.Sprite("tank_bulletFly3.png", SPRITE_SCALING_LASER)
 
         # Position the bullet at the player's current location
         start_x = self.player_sprite.center_x
@@ -314,7 +363,7 @@ class MyGame(arcade.Window):
                 self.level_3()
 
             # If the bullet flies off-screen, remove it.
-            if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
+            if bullet.bottom > self.window.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.window.width:
                 bullet.remove_from_sprite_lists()
 
         for coin in self.coin_list:
@@ -328,8 +377,8 @@ class MyGame(arcade.Window):
                 player.cur_health -= 1
 
                 if player.cur_health <= 0:
-                    player.remove_from_sprite_lists()
-                    arcade.play_sound(self.death_sound)
+                    view = GameOverView()
+                    self.window.show_view(view)
                 else:
                     arcade.play_sound(self.hit_sound)
 
@@ -357,8 +406,11 @@ class MyGame(arcade.Window):
 
 
 def main():
-    game = MyGame()
-    game.setup()
+    """ Main function """
+
+    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    start_view = InstructionView()
+    window.show_view(start_view)
     arcade.run()
 
 
