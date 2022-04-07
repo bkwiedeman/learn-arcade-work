@@ -1,21 +1,14 @@
-# CHANGE COIN TO PLANE
-# CHANGE SOUNDS
-# REMOVE REDUNDANT CODE (GAME OVER)
 # CITE WEBSITE ABOVE IMAGE AND SOUNDS
-"""
-Artwork from https://kenney.nl
-"""
-
 import random
 import arcade
 import math
-import os
+
 
 SPRITE_SCALING = 0.8
 SPRITE_SCALING_PLAYER = 0.3
-SPRITE_SCALING_COIN = 0.8
+SPRITE_SCALING_PLANE = 0.8
 SPRITE_SCALING_LASER = 0.4
-COIN_COUNT = 50
+PLANE_COUNT = 50
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -85,7 +78,7 @@ class GameOverView(arcade.View):
         self.window.show_view(game_view)
 
 
-class Coin(arcade.Sprite):
+class Plane(arcade.Sprite):
     def __init__(self, image, scale, max_health):
         super().__init__(image, scale)
 
@@ -162,16 +155,9 @@ class GameView(arcade.View):
         # Call the parent class initializer
         super().__init__()
 
-        # Set the working directory (where we expect to find files) to the same
-        # directory this .py file is in. You can leave this out of your own
-        # code, but it is needed to easily run the examples using "python -m"
-        # as mentioned at the top of this program.
-        file_path = os.path.dirname(os.path.abspath(__file__))
-        os.chdir(file_path)
-
         # Variables that will hold sprite lists
         self.player_list = None
-        self.coin_list = None
+        self.plane_list = None
         self.bullet_list = None
         self.wall_list = None
 
@@ -183,35 +169,33 @@ class GameView(arcade.View):
         self.player_sprite = None
         self.score = 0
         # Load sounds. Sounds from kenney.nl
-        self.gun_sound = arcade.sound.load_sound(":resources:sounds/laser1.wav")
-        self.hit_sound = arcade.sound.load_sound(":resources:sounds/phaseJump1.wav")
-        self.death_sound = arcade.sound.load_sound(":resources:sounds/hit5.wav"
-                                                   "")
-        arcade.set_background_color(arcade.color.AMAZON)
+        self.hit2_sound = arcade.sound.load_sound("arcade_resources_sounds_hit3.wav")
+        self.death_sound = arcade.sound.load_sound("arcade_resources_sounds_explosion2.wav")
+        self.hit_sound = arcade.sound.load_sound("arcade_resources_sounds_gameover2.wav")
 
     def level_1(self):
-        for i in range(COIN_COUNT):
-            coin = Coin("ship_0005.png", SPRITE_SCALING_COIN, 5)
-            coin.center_x = random.randrange(-1000, 1500, 64)
-            coin.center_y = random.randrange(-1000, 1500, 64)
+        for i in range(PLANE_COUNT):
+            plane = Plane("ship_0005.png", SPRITE_SCALING_PLANE, 1)
+            plane.center_x = random.randrange(-1000, 1500, 64)
+            plane.center_y = random.randrange(-1000, 1500, 64)
 
-            self.coin_list.append(coin)
+            self.plane_list.append(plane)
 
     def level_2(self):
-        for i in range(COIN_COUNT):
-            coin = Coin("ship_0005.png", SPRITE_SCALING_COIN, 1)
-            coin.center_x = random.randrange(-1000, 1500, 64)
-            coin.center_y = random.randrange(-1000, 1500, 64)
+        for i in range(PLANE_COUNT):
+            plane = Plane("ship_0005.png", SPRITE_SCALING_PLANE, 3)
+            plane.center_x = random.randrange(-1000, 1500, 64)
+            plane.center_y = random.randrange(-1000, 1500, 64)
 
-            self.coin_list.append(coin)
+            self.plane_list.append(plane)
 
     def level_3(self):
-        for i in range(COIN_COUNT):
-            coin = Coin("ship_0005.png", SPRITE_SCALING_COIN, 1)
-            coin.center_x = random.randrange(-1000, 1500, 64)
-            coin.center_y = random.randrange(-1000, 1500, 64)
+        for i in range(PLANE_COUNT):
+            plane = Plane("ship_0005.png", SPRITE_SCALING_PLANE, 5)
+            plane.center_x = random.randrange(-1000, 1500, 64)
+            plane.center_y = random.randrange(-1000, 1500, 64)
 
-            self.coin_list.append(coin)
+            self.plane_list.append(plane)
 
     def setup(self):
 
@@ -219,7 +203,7 @@ class GameView(arcade.View):
 
         # Sprite lists
         self.player_list = arcade.SpriteList()
-        self.coin_list = arcade.SpriteList()
+        self.plane_list = arcade.SpriteList()
         self.bullet_list = arcade.SpriteList()
         self.wall_list = arcade.SpriteList()
 
@@ -255,13 +239,6 @@ class GameView(arcade.View):
             wall.center_y = y
             self.wall_list.append(wall)
 
-        for i in range(COIN_COUNT):
-            coin = Coin("ship_0005.png", SPRITE_SCALING_COIN, 1)
-            coin.center_x = random.randrange(-1000, 1500, 64)
-            coin.center_y = random.randrange(-1000, 1500, 64)
-
-            self.coin_list.append(coin)
-
         self.physics_engine = arcade.PhysicsEngineSimple(self.player_sprite, self.wall_list)
 
         # Set the background color
@@ -276,27 +253,23 @@ class GameView(arcade.View):
         self.window.clear()
 
         # Draw all the sprites.
-        self.coin_list.draw()
+        self.plane_list.draw()
         self.bullet_list.draw()
         self.player_list.draw()
         self.wall_list.draw()
 
-        for coin in self.coin_list:
-            coin.draw_health_bar()
+        for plane in self.plane_list:
+            plane.draw_health_bar()
 
         for player in self.player_list:
             player.draw_health_bar()
-
-        if len(self.coin_list) == 0:
-            output = "GAME OVER!"
-            arcade.draw_text(output, 400, 300, arcade.color.WHITE, 25)
 
         # Put the text on the screen.
         output = f"Score: {self.score}"
         arcade.draw_text(output, 10, 20, arcade.color.WHITE, 14)
 
         output = f"Level: {self.level}"
-        arcade.draw_text(output, 10, 35, arcade.color.WHITE, 15)
+        arcade.draw_text(output, 10, 35, arcade.color.WHITE, 14)
 
     def on_mouse_press(self, x, y, button, modifiers):
         """ Called whenever the mouse button is clicked. """
@@ -329,36 +302,36 @@ class GameView(arcade.View):
         self.bullet_list.update()
         self.player_list.update()
 
-        for coin in self.coin_list:
-            coin.follow_sprite(self.player_sprite)
+        for plane in self.plane_list:
+            plane.follow_sprite(self.player_sprite)
 
         # Loop through each bullet
         for bullet in self.bullet_list:
 
             # Check this bullet to see if it hit a coin
-            hit_list = arcade.check_for_collision_with_list(bullet, self.coin_list)
+            hit_list = arcade.check_for_collision_with_list(bullet, self.plane_list)
 
             # If it did, get rid of the bullet
             if len(hit_list) > 0:
                 bullet.remove_from_sprite_lists()
 
             # For every coin we hit, add to the score and remove the coin
-            for coin in hit_list:
-                coin.cur_health -= 1
+            for plane in hit_list:
+                plane.cur_health -= 1
 
-                if coin.cur_health <= 0:
-                    coin.remove_from_sprite_lists()
+                if plane.cur_health <= 0:
+                    plane.remove_from_sprite_lists()
                     self.score += 1
                     arcade.play_sound(self.death_sound)
                 else:
-                    arcade.play_sound(self.hit_sound)
+                    arcade.play_sound(self.hit2_sound)
 
                     # See if we should go to level 2
-            if len(self.coin_list) == 0 and self.level == 1:
+            if len(self.plane_list) == 0 and self.level == 1:
                 self.level += 1
                 self.level_2()
                 # See if we should go to level 3
-            elif len(self.coin_list) == 0 and self.level == 2:
+            elif len(self.plane_list) == 0 and self.level == 2:
                 self.level += 1
                 self.level_3()
 
@@ -366,12 +339,12 @@ class GameView(arcade.View):
             if bullet.bottom > self.window.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.window.width:
                 bullet.remove_from_sprite_lists()
 
-        for coin in self.coin_list:
+        for plane in self.plane_list:
 
-            player_hit_list = arcade.check_for_collision_with_list(coin, self.player_list)
+            player_hit_list = arcade.check_for_collision_with_list(plane, self.player_list)
 
             if len(player_hit_list) > 0:
-                coin.remove_from_sprite_lists()
+                plane.remove_from_sprite_lists()
 
             for player in player_hit_list:
                 player.cur_health -= 1
@@ -388,10 +361,8 @@ class GameView(arcade.View):
     def on_key_press(self, key, modifiers):
         if key == arcade.key.W:
             self.player_sprite.change_y = MOVEMENT_SPEED
-
         elif key == arcade.key.S:
             self.player_sprite.change_y = -MOVEMENT_SPEED
-
         elif key == arcade.key.A:
             self.player_sprite.change_x = -MOVEMENT_SPEED
         elif key == arcade.key.D:
