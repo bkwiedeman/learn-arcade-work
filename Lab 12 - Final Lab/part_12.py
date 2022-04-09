@@ -1,14 +1,16 @@
-# CITE WEBSITE ABOVE IMAGE AND SOUNDS
+# CHANGE IMAGES FOR DIFFERENT LEVELS
+# GET A GAME OVER MESSAGE WHEN YOU WIN
 import random
 import arcade
 import math
-
 
 SPRITE_SCALING = 0.8
 SPRITE_SCALING_PLAYER = 0.3
 SPRITE_SCALING_PLANE = 0.8
 SPRITE_SCALING_LASER = 0.4
-PLANE_COUNT = 50
+SPRITE_SCALING_BOSS = 1
+PLANE_COUNT = 5
+BOSS_COUNT = 2
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -76,6 +78,42 @@ class GameOverView(arcade.View):
         game_view = GameView()
         game_view.setup()
         self.window.show_view(game_view)
+
+
+class Boss(arcade.Sprite):
+    def __init__(self, image, scale, max_health):
+        super().__init__(image, scale)
+
+        self.max_health = max_health
+        self.cur_health = max_health
+
+    def draw_health_bar(self):
+        if self.cur_health < self.max_health:
+            arcade.draw_rectangle_filled(center_x=self.center_x,
+                                         center_y=self.center_y + HEALTHBAR_OFFSET_Y,
+                                         width=HEALTHBAR_WIDTH,
+                                         height=3,
+                                         color=arcade.color.RED)
+
+        health_width = HEALTHBAR_WIDTH * (self.cur_health / self.max_health)
+
+        arcade.draw_rectangle_filled(center_x=self.center_x - 0.5 * (HEALTHBAR_WIDTH - health_width),
+                                     center_y=self.center_y - 10,
+                                     width=health_width,
+                                     height=HEALTHBAR_HEIGHT,
+                                     color=arcade.color.GREEN)
+
+    def follow_sprite(self, player_sprite):
+
+        if self.center_y < player_sprite.center_y:
+            self.center_y += min(SPRITE_SPEED, player_sprite.center_y - self.center_y)
+        elif self.center_y > player_sprite.center_y:
+            self.center_y -= min(SPRITE_SPEED, self.center_y - player_sprite.center_y)
+
+        if self.center_x < player_sprite.center_x:
+            self.center_x += min(SPRITE_SPEED, player_sprite.center_x - self.center_x)
+        elif self.center_x > player_sprite.center_x:
+            self.center_x -= min(SPRITE_SPEED, self.center_x - player_sprite.center_x)
 
 
 class Plane(arcade.Sprite):
@@ -160,6 +198,7 @@ class GameView(arcade.View):
         self.plane_list = None
         self.bullet_list = None
         self.wall_list = None
+        self.boss_list = None
 
         self.level = 1
 
@@ -168,13 +207,14 @@ class GameView(arcade.View):
         # Set up the player info
         self.player_sprite = None
         self.score = 0
-        # Load sounds. Sounds from kenney.nl
+        # All sounds from Arcade Library, https://api.arcade.academy/en/latest/resources.html-sounds
         self.hit2_sound = arcade.sound.load_sound("arcade_resources_sounds_hit3.wav")
         self.death_sound = arcade.sound.load_sound("arcade_resources_sounds_explosion2.wav")
         self.hit_sound = arcade.sound.load_sound("arcade_resources_sounds_gameover2.wav")
 
     def level_1(self):
         for i in range(PLANE_COUNT):
+            # Image from kenney.nl, https://kenney.nl/assets/pixel-shmu
             plane = Plane("ship_0005.png", SPRITE_SCALING_PLANE, 1)
             plane.center_x = random.randrange(-1000, 1500, 64)
             plane.center_y = random.randrange(-1000, 1500, 64)
@@ -183,7 +223,8 @@ class GameView(arcade.View):
 
     def level_2(self):
         for i in range(PLANE_COUNT):
-            plane = Plane("ship_0005.png", SPRITE_SCALING_PLANE, 3)
+            # Image from kenney.nl, https://kenney.nl/assets/pixel-shmu
+            plane = Plane("ship_0005.png", SPRITE_SCALING_PLANE, 1)
             plane.center_x = random.randrange(-1000, 1500, 64)
             plane.center_y = random.randrange(-1000, 1500, 64)
 
@@ -191,11 +232,21 @@ class GameView(arcade.View):
 
     def level_3(self):
         for i in range(PLANE_COUNT):
-            plane = Plane("ship_0005.png", SPRITE_SCALING_PLANE, 5)
+            # Image from kenney.nl, https://kenney.nl/assets/pixel-shmu
+            plane = Plane("ship_0005.png", SPRITE_SCALING_PLANE, 1)
             plane.center_x = random.randrange(-1000, 1500, 64)
             plane.center_y = random.randrange(-1000, 1500, 64)
 
             self.plane_list.append(plane)
+
+    def level_4(self):
+        for i in range(BOSS_COUNT):
+            # Image from kenney.nl, https://kenney.nl/assets/pixel-shmu
+            boss = Boss("tanks_tankGrey1.png", SPRITE_SCALING_BOSS, 20)
+            boss.center_x = random.randrange(-1000, 1500, 64)
+            boss.center_y = random.randrange(-1000, 1500, 64)
+
+            self.boss_list.append(boss)
 
     def setup(self):
 
@@ -206,34 +257,39 @@ class GameView(arcade.View):
         self.plane_list = arcade.SpriteList()
         self.bullet_list = arcade.SpriteList()
         self.wall_list = arcade.SpriteList()
+        self.boss_list = arcade.SpriteList()
 
         # Set up the player
         self.score = 0
         self.level = 1
 
-        # Image from kenney.nl
+        # Image from kenney.nl, https://kenney.nl/assets/tanks
         self.player_sprite = Player(50, 70, 0, 0, 10, "tanks_tankGrey1.png", SPRITE_SCALING_PLAYER)
         self.player_list.append(self.player_sprite)
 
         for x in range(0, 800, 42):
+            # Image from kenney.nl, https://kenney.nl/assets/tanks
             wall = arcade.Sprite("tanks_crateWood.png", SPRITE_SCALING)
             wall.center_x = x
             wall.center_y = 0
             self.wall_list.append(wall)
 
         for x in range(0, 800, 42):
+            # Image from kenney.nl, https://kenney.nl/assets/tanks
             wall = arcade.Sprite("tanks_crateWood.png", SPRITE_SCALING)
             wall.center_x = x
             wall.center_y = 600
             self.wall_list.append(wall)
 
         for y in range(0, 600, 42):
+            # Image from kenney.nl, https://kenney.nl/assets/tanks
             wall = arcade.Sprite("tanks_crateWood.png", SPRITE_SCALING)
             wall.center_x = 0
             wall.center_y = y
             self.wall_list.append(wall)
 
         for y in range(0, 600, 42):
+            # Image from kenney.nl, https://kenney.nl/assets/tanks
             wall = arcade.Sprite("tanks_crateWood.png", SPRITE_SCALING)
             wall.center_x = 800
             wall.center_y = y
@@ -257,6 +313,7 @@ class GameView(arcade.View):
         self.bullet_list.draw()
         self.player_list.draw()
         self.wall_list.draw()
+        self.boss_list.draw()
 
         for plane in self.plane_list:
             plane.draw_health_bar()
@@ -275,6 +332,7 @@ class GameView(arcade.View):
         """ Called whenever the mouse button is clicked. """
 
         # Create a bullet
+        # Image from kenney.nl, https://kenney.nl/assets/tanks
         bullet = arcade.Sprite("tank_bulletFly3.png", SPRITE_SCALING_LASER)
 
         # Position the bullet at the player's current location
@@ -301,15 +359,20 @@ class GameView(arcade.View):
     def on_update(self, delta_time):
         self.bullet_list.update()
         self.player_list.update()
+        self.boss_list.update()
 
         for plane in self.plane_list:
             plane.follow_sprite(self.player_sprite)
+
+        for boss in self.boss_list:
+            boss.follow_sprite(self.player_sprite)
 
         # Loop through each bullet
         for bullet in self.bullet_list:
 
             # Check this bullet to see if it hit a coin
             hit_list = arcade.check_for_collision_with_list(bullet, self.plane_list)
+            bosshit_list = arcade.check_for_collision_with_list(bullet, self.boss_list)
 
             # If it did, get rid of the bullet
             if len(hit_list) > 0:
@@ -326,18 +389,32 @@ class GameView(arcade.View):
                 else:
                     arcade.play_sound(self.hit2_sound)
 
-                    # See if we should go to level 2
-            if len(self.plane_list) == 0 and self.level == 1:
-                self.level += 1
-                self.level_2()
-                # See if we should go to level 3
-            elif len(self.plane_list) == 0 and self.level == 2:
-                self.level += 1
-                self.level_3()
-
-            # If the bullet flies off-screen, remove it.
-            if bullet.bottom > self.window.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.window.width:
+            if len(bosshit_list) > 0:
                 bullet.remove_from_sprite_lists()
+
+            for boss in bosshit_list:
+                boss.cur_health -= 1
+
+                if boss.cur_health <= 0:
+                    boss.remove_from_sprite_lists()
+
+                else:
+                    arcade.play_sound(self.hit2_sound)
+
+                # If the bullet flies off-screen, remove it.
+                if bullet.bottom > self.window.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.window.width:
+                    bullet.remove_from_sprite_lists()
+
+        if len(self.plane_list) == 0 and self.level == 1:
+            self.level += 1
+            self.level_2()
+            # See if we should go to level 3
+        elif len(self.plane_list) == 0 and self.level == 2:
+            self.level += 1
+            self.level_3()
+        elif len(self.plane_list) == 0 and self.level == 3:
+            self.level += 1
+            self.level_4()
 
         for plane in self.plane_list:
 
@@ -348,6 +425,29 @@ class GameView(arcade.View):
 
             for player in player_hit_list:
                 player.cur_health -= 1
+
+                if player.cur_health <= 0:
+                    view = GameOverView()
+                    self.window.show_view(view)
+                else:
+                    arcade.play_sound(self.hit_sound)
+
+        for boss in self.boss_list:
+
+            player_hit_list2 = arcade.check_for_collision_with_list(boss, self.player_list)
+
+            if len(player_hit_list2) > 0:
+
+                for boss in player_hit_list2:
+                    boss.cur_health -= 1
+
+                if boss.cur_health <= 0:
+                    boss.remove_from_sprite_lists()
+
+            for player in player_hit_list2:
+                player.cur_health -= 1
+                player.center_x += 15
+                player.center_y += 15
 
                 if player.cur_health <= 0:
                     view = GameOverView()
