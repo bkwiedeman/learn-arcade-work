@@ -215,7 +215,7 @@ class GameView(arcade.View):
     def level_1(self):
         for i in range(PLANE_COUNT):
             # Image from kenney.nl, https://kenney.nl/assets/pixel-shmu
-            plane = Plane("ship_0005.png", SPRITE_SCALING_PLANE, 1)
+            plane = Plane("ship_0004.png", SPRITE_SCALING_PLANE, 1)
             plane.center_x = random.randrange(-1000, 1500, 64)
             plane.center_y = random.randrange(-1000, 1500, 64)
 
@@ -224,7 +224,7 @@ class GameView(arcade.View):
     def level_2(self):
         for i in range(PLANE_COUNT):
             # Image from kenney.nl, https://kenney.nl/assets/pixel-shmu
-            plane = Plane("ship_0005.png", SPRITE_SCALING_PLANE, 1)
+            plane = Plane("ship_0003.png", SPRITE_SCALING_PLANE, 1)
             plane.center_x = random.randrange(-1000, 1500, 64)
             plane.center_y = random.randrange(-1000, 1500, 64)
 
@@ -242,7 +242,7 @@ class GameView(arcade.View):
     def level_4(self):
         for i in range(BOSS_COUNT):
             # Image from kenney.nl, https://kenney.nl/assets/pixel-shmu
-            boss = Boss("tanks_tankGrey1.png", SPRITE_SCALING_BOSS, 20)
+            boss = Boss("ship_0015.png", SPRITE_SCALING_BOSS, 1)
             boss.center_x = random.randrange(-1000, 1500, 64)
             boss.center_y = random.randrange(-1000, 1500, 64)
 
@@ -397,6 +397,7 @@ class GameView(arcade.View):
 
                 if boss.cur_health <= 0:
                     boss.remove_from_sprite_lists()
+                    self.score += 5
 
                 else:
                     arcade.play_sound(self.hit2_sound)
