@@ -9,7 +9,7 @@ SPRITE_SCALING_PLAYER = 0.3
 SPRITE_SCALING_PLANE = 0.8
 SPRITE_SCALING_LASER = 0.4
 SPRITE_SCALING_BOSS = 1
-PLANE_COUNT = 5
+PLANE_COUNT = 50
 BOSS_COUNT = 2
 
 SCREEN_WIDTH = 800
@@ -75,9 +75,31 @@ class GameOverView(arcade.View):
 
     def on_mouse_press(self, _x, _y, _button, _modifiers):
         """ If the user presses the mouse button, start the game. """
-        game_view = GameView()
-        game_view.setup()
-        self.window.show_view(game_view)
+        instruction_view = InstructionView()
+        self.window.show_view(instruction_view)
+
+
+class WinView(arcade.View):
+    def on_show(self):
+        """ This is run once when we switch to this view """
+        arcade.set_background_color(arcade.csscolor.CADET_BLUE)
+
+    def on_draw(self):
+        """ Draw this view """
+        self.window.clear()
+        arcade.draw_text("You are a War Hero!", self.window.width / 2, self.window.height / 2,
+                         arcade.color.WHITE, font_size=50, anchor_x="center")
+        arcade.draw_text("You have defended your base, and made your country proud!", self.window.width / 2,
+                         self.window.height / 2 - 70,
+                         arcade.color.WHITE, font_size=20, anchor_x="center")
+        arcade.draw_text("Click to play again", self.window.width / 2,
+                         self.window.height / 2 - 100,
+                         arcade.color.WHITE, font_size=20, anchor_x="center")
+
+    def on_mouse_press(self, _x, _y, _button, _modifiers):
+        """ If the user presses the mouse button, start the game. """
+        instruction_view = InstructionView()
+        self.window.show_view(instruction_view)
 
 
 class Boss(arcade.Sprite):
@@ -224,7 +246,7 @@ class GameView(arcade.View):
     def level_2(self):
         for i in range(PLANE_COUNT):
             # Image from kenney.nl, https://kenney.nl/assets/pixel-shmu
-            plane = Plane("ship_0003.png", SPRITE_SCALING_PLANE, 1)
+            plane = Plane("ship_0003.png", SPRITE_SCALING_PLANE, 3)
             plane.center_x = random.randrange(-1000, 1500, 64)
             plane.center_y = random.randrange(-1000, 1500, 64)
 
@@ -233,7 +255,7 @@ class GameView(arcade.View):
     def level_3(self):
         for i in range(PLANE_COUNT):
             # Image from kenney.nl, https://kenney.nl/assets/pixel-shmu
-            plane = Plane("ship_0005.png", SPRITE_SCALING_PLANE, 1)
+            plane = Plane("ship_0005.png", SPRITE_SCALING_PLANE, 5)
             plane.center_x = random.randrange(-1000, 1500, 64)
             plane.center_y = random.randrange(-1000, 1500, 64)
 
@@ -242,7 +264,7 @@ class GameView(arcade.View):
     def level_4(self):
         for i in range(BOSS_COUNT):
             # Image from kenney.nl, https://kenney.nl/assets/pixel-shmu
-            boss = Boss("ship_0015.png", SPRITE_SCALING_BOSS, 1)
+            boss = Boss("ship_0015.png", SPRITE_SCALING_BOSS, 20)
             boss.center_x = random.randrange(-1000, 1500, 64)
             boss.center_y = random.randrange(-1000, 1500, 64)
 
@@ -394,13 +416,15 @@ class GameView(arcade.View):
 
             for boss in bosshit_list:
                 boss.cur_health -= 1
+                arcade.play_sound(self.hit2_sound)
 
                 if boss.cur_health <= 0:
                     boss.remove_from_sprite_lists()
                     self.score += 5
 
-                else:
-                    arcade.play_sound(self.hit2_sound)
+                if len(self.boss_list) == 0:
+                    view = WinView()
+                    self.window.show_view(view)
 
                 # If the bullet flies off-screen, remove it.
                 if bullet.bottom > self.window.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.window.width:
@@ -447,8 +471,8 @@ class GameView(arcade.View):
 
             for player in player_hit_list2:
                 player.cur_health -= 1
-                player.center_x += 15
-                player.center_y += 15
+                player.center_x += 30
+                player.center_y += 30
 
                 if player.cur_health <= 0:
                     view = GameOverView()
