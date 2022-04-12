@@ -1,5 +1,3 @@
-# CHANGE IMAGES FOR DIFFERENT LEVELS
-# GET A GAME OVER MESSAGE WHEN YOU WIN
 import random
 import arcade
 import math
