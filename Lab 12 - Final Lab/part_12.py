@@ -6,7 +6,7 @@ SPRITE_SCALING = 0.8
 SPRITE_SCALING_PLAYER = 0.3
 SPRITE_SCALING_PLANE = 0.8
 SPRITE_SCALING_LASER = 0.4
-SPRITE_SCALING_BOSS = 1
+SPRITE_SCALING_BOSS = 2
 PLANE_COUNT = 50
 BOSS_COUNT = 2
 
@@ -17,6 +17,9 @@ SCREEN_TITLE = "FINAL PROJECT"
 BULLET_SPEED = 15
 MOVEMENT_SPEED = 4
 SPRITE_SPEED = 0.6
+
+TEXTURE_LEFT = 1
+TEXTURE_RIGHT = 0
 
 HEALTHBAR_WIDTH = 25
 HEALTHBAR_HEIGHT = 3
@@ -183,16 +186,30 @@ class Player(arcade.Sprite):
         self.max_health = max_health
         self.cur_health = max_health
 
+        self.textures = []
+
+        texture = arcade.load_texture("tanks_tankGrey1.png")
+        self.textures.append(texture)
+        texture = arcade.load_texture("tanks_tankGrey1.png", flipped_horizontally=True)
+        self.textures.append(texture)
+
+        self.texture = texture
+
     """ Main application class. """
 
     def update(self):
         self.center_x += self.change_x
         self.center_y += self.change_y
 
+        if self.change_x < 0:
+            self.texture = self.textures[TEXTURE_LEFT]
+        elif self.change_x > 0:
+            self.texture = self.textures[TEXTURE_RIGHT]
+
     def draw_health_bar(self):
         if self.cur_health < self.max_health:
             arcade.draw_rectangle_filled(center_x=self.center_x,
-                                         center_y=self.center_y - 35,
+                                         center_y=self.center_y - 15,
                                          width=HEALTHBAR_WIDTH,
                                          height=3,
                                          color=arcade.color.RED)
@@ -200,7 +217,7 @@ class Player(arcade.Sprite):
         health_width = HEALTHBAR_WIDTH * (self.cur_health / self.max_health)
 
         arcade.draw_rectangle_filled(center_x=self.center_x - 0.5 * (HEALTHBAR_WIDTH - health_width),
-                                     center_y=self.center_y - 35,
+                                     center_y=self.center_y - 15,
                                      width=health_width,
                                      height=HEALTHBAR_HEIGHT,
                                      color=arcade.color.GREEN)
@@ -262,9 +279,9 @@ class GameView(arcade.View):
     def level_4(self):
         for i in range(BOSS_COUNT):
             # Image from kenney.nl, https://kenney.nl/assets/pixel-shmu
-            boss = Boss("ship_0015.png", SPRITE_SCALING_BOSS, 20)
-            boss.center_x = random.randrange(-1000, 1500, 64)
-            boss.center_y = random.randrange(-1000, 1500, 64)
+            boss = Boss("ship_0015.png", SPRITE_SCALING_BOSS, 30)
+            boss.center_x = random.randrange(-900, 700, 64)
+            boss.center_y = random.randrange(-900, 700, 64)
 
             self.boss_list.append(boss)
 
@@ -469,8 +486,8 @@ class GameView(arcade.View):
 
             for player in player_hit_list2:
                 player.cur_health -= 1
-                player.center_x += 30
-                player.center_y += 30
+                player.center_x += 60
+                player.center_y += 60
 
                 if player.cur_health <= 0:
                     view = GameOverView()
